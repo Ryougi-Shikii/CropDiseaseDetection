@@ -60,7 +60,7 @@ The repository includes a TensorFlow CPU dependency, which is suitable for local
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/<your-repository-url>.git
+   git clone https://github.com/Ryougi-Shikii/CropDiseaseDetection.git
    cd CropDiseaseDetection
    ```
 
