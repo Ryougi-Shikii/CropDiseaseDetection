@@ -13,25 +13,34 @@ st.set_page_config(
     layout="wide"
 )
 
+# Hugging Face Model Repository
+HF_MODEL_ID = "RuougiShiki/crop-disease-vit"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_DIR = os.path.join(BASE_DIR, 'best_vit_plant_model')
-CLASSES_PATH = os.path.join(MODEL_DIR, 'classes.json')
+LOCAL_MODEL_DIR = os.path.join(BASE_DIR, 'best_vit_plant_model')
+LOCAL_WEIGHTS = os.path.join(LOCAL_MODEL_DIR, 'model.safetensors')
+LOCAL_CLASSES = os.path.join(LOCAL_MODEL_DIR, 'classes.json')
 
 # Cache model and processor for lightning fast inference
 @st.cache_resource
 def load_vit_pipeline():
     try:
-        if not os.path.isdir(MODEL_DIR):
-            st.error(f"❌ Model directory not found: {MODEL_DIR}")
-            return None, None, None
-        
-        processor = AutoImageProcessor.from_pretrained(MODEL_DIR)
-        model = AutoModelForImageClassification.from_pretrained(MODEL_DIR)
-        model.eval()
+        # Check if full model is present locally (e.g. on your local machine or in Docker)
+        if os.path.exists(LOCAL_WEIGHTS):
+            model_source = LOCAL_MODEL_DIR
+            status_source = "Local weights"
+        else:
+            # Fallback: seamlessly fetch and cache directly from Hugging Face Hub
+            model_source = HF_MODEL_ID
+            status_source = f"Hugging Face Hub ({HF_MODEL_ID})"
 
-        # Load classes
-        if os.path.exists(CLASSES_PATH):
-            with open(CLASSES_PATH, 'r') as f:
+        with st.spinner(f"Loading Vision Transformer from {status_source}..."):
+            processor = AutoImageProcessor.from_pretrained(model_source)
+            model = AutoModelForImageClassification.from_pretrained(model_source)
+            model.eval()
+
+        # Load classes from local classes.json or from Hugging Face config id2label
+        if os.path.exists(LOCAL_CLASSES):
+            with open(LOCAL_CLASSES, 'r') as f:
                 classes = json.load(f)
         else:
             classes = list(model.config.id2label.values())
@@ -61,7 +70,8 @@ st.sidebar.markdown(
     """
     **Architecture:** Vision Transformer (`google/vit-base-patch16-224`)  
     **Dataset:** PlantVillage + PlantDoc Field Injected  
-    **Validation Accuracy:** **98.97%** (38 Disease Classes)
+    **Validation Accuracy:** **98.97%** (38 Disease Classes)  
+    **Model Hub:** [RuougiShiki/crop-disease-vit](https://huggingface.co/RuougiShiki/crop-disease-vit)
     """
 )
 
