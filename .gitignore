@@ -1,0 +1,13 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.env
+
+*.zip
+best_vit_plant_model/training_args.bin
+_*
+
+best_vit_plant_model/model.safetensors
+*.safetensors
+*.keras
